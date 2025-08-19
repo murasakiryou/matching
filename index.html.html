@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mijikani</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 基本スタイル */
+        :root {
+            --bg-start: #7DF9FF;
+            --bg-end: #F7B2FD;
+            --container-bg: rgba(255, 255, 255, 0.85);
+            --text-color: #2D3748;
+            --primary-start: #FF7EB9;
+            --primary-end: #FFB47E;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        body {
+            font-family: 'M PLUS Rounded 1c', 'Noto Sans JP', 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow: hidden; /* 背景アニメーションのため */
+        }
+        /* 背景のキラキラアニメーション */
+        .sparkle {
+            position: fixed;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle-anim 5s linear infinite;
+            box-shadow: 0 0 10px white, 0 0 20px white;
+        }
+        @keyframes sparkle-anim {
+            0% { transform: translateY(100vh) scale(0); opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+        .container {
+            background: var(--container-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            box-shadow: 0 1rem 2rem var(--shadow-color);
+            padding: 2rem;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+        /* 画面遷移アニメーション */
+        .screen { display: none; }
+        .screen.active {
+            display: block;
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        /* ボタンのスタイル */
+        .btn {
+            @apply font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform focus:outline-none;
+            border: none;
+        }
+        .btn:hover {
+            transform: scale(1.05) rotate(-2deg);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, var(--primary-start), var(--primary-end));
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .btn-secondary {
+            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        }
+        .btn-danger {
+            @apply bg-red-500 text-white hover:bg-red-600;
+        }
+        .btn-icon {
+            @apply p-2 rounded-full transition-colors duration-200;
+        }
+        /* 入力フィールド */
+        .input-field {
+            @apply w-full p-3 border-2 border-gray-300 rounded-xl bg-white text-gray-800 focus:ring-4 focus:ring-pink-300 focus:border-pink-400 transition-all duration-300 placeholder-gray-400;
+            font-weight: 700;
+        }
+        /* ラベル */
+        .label-text {
+            @apply block text-left text-gray-600 font-bold mb-2;
+        }
+        /* チェックボックス */
+        .checkbox-container {
+            @apply flex items-center justify-between p-4 bg-white rounded-2xl shadow-md mb-3 cursor-pointer hover:bg-pink-50 transition-colors duration-200 border-2 border-transparent;
+        }
+        .checkbox-container.checked {
+            border-color: var(--primary-start);
+            transform: scale(1.02);
+        }
+        .checkbox-container input[type="checkbox"] {
+            @apply h-7 w-7 text-pink-500 rounded-md border-gray-400 focus:ring-pink-400 focus:ring-offset-2;
+        }
+        /* パチンコ風演出 */
+        .pachinko-reel-container {
+            display: flex; justify-content: center; align-items: center;
+            height: 150px; overflow: hidden;
+            border-radius: 20px; background-color: #111;
+            margin-top: 2rem; position: relative;
+            box-shadow: inset 0 0 15px #000, 0 0 30px var(--primary-start);
+            border: 4px solid transparent;
+            background-clip: padding-box;
+            animation: flashing-border 2s infinite;
+        }
+        @keyframes flashing-border {
+            0%, 100% { border-color: var(--primary-start); box-shadow: 0 0 30px var(--primary-start); }
+            50% { border-color: var(--primary-end); box-shadow: 0 0 30px var(--primary-end); }
+        }
+        .pachinko-reel-final {
+            font-size: 100px; font-weight: 800;
+            color: #fff;
+            animation: finalReveal 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+            text-shadow: 0 0 10px #fff, 0 0 20px var(--primary-start), 0 0 40px var(--primary-start);
+        }
+        @keyframes finalReveal {
+            0% { transform: scale(0.2) rotate(180deg); opacity: 0; }
+            70% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        /* モーダル */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4); backdrop-filter: blur(5px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1001; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease-out;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-content {
+            background: white; border-radius: 24px; padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); text-align: center;
+            max-width: 400px; width: 90%;
+            animation: modal-pop-in 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        @keyframes modal-pop-in {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        /* テキストグラデーション */
+        .text-gradient {
+            background: linear-gradient(45deg, var(--primary-start), var(--primary-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        /* 結果発表のハートアニメーション */
+        @keyframes heart-beat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        #matchResultDisplay.matched {
+            animation: heart-beat 0.5s ease-in-out;
+        }
+        .step-icon {
+            background: linear-gradient(45deg, var(--primary-start), var(--primary-end));
+            color: white;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 800;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景アニメーション用 Canvas -->
+    <canvas id="confettiCanvas" class="fixed top-0 left-0 w-full h-full pointer-events-none z-50"></canvas>
+
+    <div class="container">
+        <!-- 言語選択 -->
+        <div class="absolute top-4 right-4 z-10">
+            <select id="languageSelector" class="bg-white/50 border border-gray-300 text-gray-800 text-sm rounded-full focus:ring-pink-400 focus:border-pink-400 block w-full p-2 font-bold">
+                <option value="ja">日本語</option>
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+            </select>
+        </div>
+
+        <!-- 確認モーダル -->
+        <div id="confirmationModal" class="modal-overlay">
+            <div class="modal-content">
+                <p id="modalMessage" class="text-xl font-bold mb-6 text-gray-700"></p>
+                <div class="flex justify-around gap-4">
+                    <button id="modalConfirmBtn" class="btn btn-primary flex-1" data-i18n-key="yes"></button>
+                    <button id="modalCancelBtn" class="btn btn-secondary flex-1" data-i18n-key="no"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 遊び方説明モーダル -->
+        <div id="explanationModal" class="modal-overlay">
+            <div class="modal-content">
+                <h3 class="text-3xl font-bold mb-6 text-gradient" data-i18n-key="howToPlayTitle"></h3>
+                <div id="explanationContent" class="text-left space-y-4 text-gray-700 font-semibold">
+                    <!-- Steps will be populated by JS -->
+                </div>
+                <button id="closeExplanationBtn" class="btn btn-primary mt-8 w-full" data-i18n-key="closeBtn"></button>
+            </div>
+        </div>
+
+        <!-- 1. 設定画面 -->
+        <div id="settingsScreen" class="screen active">
+            <h2 id="settingsScreenTitle" class="text-5xl mb-8 text-gradient"></h2>
+            <div class="space-y-6">
+                <div>
+                    <label for="customAppNameInput" class="label-text" data-i18n-key="matchingTheme"></label>
+                    <input type="text" id="customAppNameInput" class="input-field" data-i18n-placeholder="themePlaceholder">
+                </div>
+                <div>
+                    <label for="maxCrushes" class="label-text" data-i18n-key="maxCrushesLabel"></label>
+                    <select id="maxCrushes" class="input-field">
+                        <option value="1">1</option> <option value="2">2</option> <option value="3">3</option> <option value="4">4</option> <option value="5">5</option>
+                    </select>
+                </div>
+                <div class="p-4 bg-white/50 rounded-2xl space-y-4">
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span data-i18n-key="showUnrequitedCrushesLabel" class="font-semibold"></span>
+                        <input type="checkbox" id="showUnrequitedCrushesToggle" class="h-6 w-6 text-pink-500 rounded-md border-gray-400 focus:ring-pink-400">
+                    </label>
+                    <hr>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span data-i18n-key="muteLabel" class="font-semibold"></span>
+                        <input type="checkbox" id="muteToggle" class="h-6 w-6 text-pink-500 rounded-md border-gray-400 focus:ring-pink-400">
+                    </label>
+                </div>
+            </div>
+            <button id="showExplanationBtn" class="btn btn-secondary w-full mt-6" data-i18n-key="howToPlayBtn"></button>
+            <button id="goToParticipantsBtn" class="btn btn-primary w-full mt-4 text-xl" data-i18n-key="goToParticipantsBtn"></button>
+        </div>
+
+        <!-- 2. 参加者登録画面 -->
+        <div id="participantsScreen" class="screen">
+            <h2 class="text-4xl font-bold mb-8 text-gradient" data-i18n-key="participantsTitle"></h2>
+            <div id="participantInputs" class="mb-6 space-y-3 max-h-60 overflow-y-auto pr-2"></div>
+            <button id="addParticipantBtn" class="btn btn-secondary w-full mb-8 flex items-center justify-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                <span data-i18n-key="addParticipantBtn"></span>
+            </button>
+            <button id="startCrushSelectionBtn" class="btn btn-primary w-full text-xl" data-i18n-key="startBtn"></button>
+        </div>
+
+        <!-- 3. マッチングしたい人選択モード -->
+        <div id="crushSelectionScreen" class="screen">
+            <h2 id="crushSelectionTitle" class="text-4xl mb-4 text-gradient"></h2>
+            <p id="showScreenTo" class="text-lg mb-6 text-gray-600 font-bold"></p>
+            <button id="iAmParticipantBtn" class="btn btn-primary w-full mb-8 text-lg"></button>
+            <div id="crushSelectionContent" class="hidden">
+                <p id="selectCrushes" class="text-lg mb-4 text-gray-600 font-bold"></p>
+                <div id="noCrushContainer" class="checkbox-container">
+                    <label for="noCrushCheckbox" class="text-lg font-bold flex-grow text-left" data-i18n-key="noCrushCheckbox"></label>
+                    <input type="checkbox" id="noCrushCheckbox">
+                </div>
+                <div id="crushList" class="space-y-3 my-6 max-h-60 overflow-y-auto pr-2 text-left"></div>
+                <button id="finishSelectionBtn" class="btn btn-primary w-full text-xl" data-i18n-key="finishSelectionBtn"></button>
+            </div>
+        </div>
+
+        <!-- 4. マッチング成立組数発表 -->
+        <div id="matchCountScreen" class="screen">
+            <h2 class="text-4xl mb-8 text-gradient" data-i18n-key="matchCountTitle"></h2>
+            <p class="text-lg mb-4 text-gray-600 font-bold" data-i18n-key="excitingResults"></p>
+            <div class="pachinko-reel-container mb-8">
+                <div id="pachinkoReel" class="pachinko-reel-final">?</div>
+            </div>
+            <p id="matchCountMessage" class="text-2xl font-bold text-gray-800 mb-8 h-8"></p>
+            <button id="goToResultBtn" class="btn btn-primary w-full text-xl" data-i18n-key="goToResultBtn"></button>
+        </div>
+
+        <!-- 5. 結果発表モード -->
+        <div id="resultScreen" class="screen">
+            <h2 class="text-4xl mb-4 text-gradient" data-i18n-key="resultTitle"></h2>
+            <p id="showResultTo" class="text-lg mb-6 text-gray-600 font-bold"></p>
+            <button id="iAmParticipantResultBtn" class="btn btn-primary w-full mb-8 text-lg"></button>
+            <div id="resultContent" class="hidden">
+                <button id="confirmResultBtn" class="btn btn-primary w-full mb-8 text-xl" data-i18n-key="confirmResultBtn"></button>
+                <div id="resultDisplayContainer" class="hidden min-h-[150px] flex flex-col justify-center items-center bg-white/50 p-6 rounded-2xl">
+                    <div id="matchResultDisplay" class="text-3xl font-extrabold text-pink-500 mb-2"></div>
+                    <div id="unrequitedCrushDisplay" class="text-xl font-bold text-gray-700"></div>
+                    <p id="noMatchMessage" class="text-lg text-gray-600 hidden"></p>
+                </div>
+                <button id="nextResultBtn" class="btn btn-primary w-full mt-8 hidden text-xl" data-i18n-key="nextPersonBtn"></button>
+            </div>
+        </div>
+
+        <!-- リセットボタン -->
+        <button id="resetAppBtn" class="btn btn-secondary mt-8 w-full" data-i18n-key="resetAppBtn"></button>
+    </div>
+
+    <!-- オーディオファイル -->
+    <audio id="pingSound" src="https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-click-1113.mp3" preload="auto"></audio>
+    <audio id="matchSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-success-alert-2060.mp3" preload="auto"></audio>
+    <audio id="pachinkoSpinSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-coin-2155.mp3" preload="auto"></audio>
+    <audio id="pachinkoStopSound" src="https://assets.mixkit.co/sfx/preview/mixkit-bonus-earned-in-video-game-2058.mp3" preload="auto"></audio>
+    <audio id="confettiSound" src="https://assets.mixkit.co/sfx/preview/mixkit-animated-small-group-applause-523.mp3" preload="auto"></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 紙吹雪アニメーション
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            const particleCount = 100;
+            const colors = ["#FF7EB9", "#FFB47E", "#7DF9FF", "#F7B2FD", "#FFFFFF"];
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            function Particle() {
+                this.x = Math.random() * canvas.width;
+                this.y = -20;
+                this.w = Math.random() * 10 + 5;
+                this.h = Math.random() * 10 + 5;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.speed = Math.random() * 3 + 2;
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 2 - 1;
+            }
+
+            Particle.prototype.draw = function() {
+                ctx.save();
+                ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.w / 2, -this.h / 2, this.w, this.h);
+                ctx.restore();
+                this.y += this.speed;
+                this.rotation += this.rotationSpeed;
+                if (this.y > canvas.height + 20) {
+                    this.y = -20;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+
+            let animationFrameId;
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => p.draw());
+                animationFrameId = requestAnimationFrame(loop);
+            }
+
+            function startConfetti() {
+                if (particles.length > 0) return;
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+                if (!animationFrameId) loop();
+            }
+
+            function stopConfetti() {
+                particles = [];
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            
+            // 背景のキラキラ
+            function createSparkles() {
+                const sparkleContainer = document.body;
+                for(let i = 0; i < 30; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'sparkle';
+                    const size = Math.random() * 10 + 2;
+                    sparkle.style.width = `${size}px`;
+                    sparkle.style.height = `${size}px`;
+                    sparkle.style.left = `${Math.random() * 100}vw`;
+                    sparkle.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                    sparkle.style.animationDelay = `${Math.random() * 5}s`;
+                    sparkleContainer.prepend(sparkle);
+                }
+            }
+
+            // --- ここからアプリ本体のロジック ---
+            const screens = { settings: document.getElementById('settingsScreen'), participants: document.getElementById('participantsScreen'), crushSelection: document.getElementById('crushSelectionScreen'), matchCount: document.getElementById('matchCountScreen'), result: document.getElementById('resultScreen'), };
+            const buttons = { showExplanation: document.getElementById('showExplanationBtn'), closeExplanation: document.getElementById('closeExplanationBtn'), goToParticipants: document.getElementById('goToParticipantsBtn'), addParticipant: document.getElementById('addParticipantBtn'), startCrushSelection: document.getElementById('startCrushSelectionBtn'), iAmParticipant: document.getElementById('iAmParticipantBtn'), finishSelection: document.getElementById('finishSelectionBtn'), goToResult: document.getElementById('goToResultBtn'), iAmParticipantResult: document.getElementById('iAmParticipantResultBtn'), confirmResult: document.getElementById('confirmResultBtn'), nextResult: document.getElementById('nextResultBtn'), resetApp: document.getElementById('resetAppBtn'), modalConfirm: document.getElementById('modalConfirmBtn'), modalCancel: document.getElementById('modalCancelBtn'), };
+            const ui = { explanationModal: document.getElementById('explanationModal'), explanationContent: document.getElementById('explanationContent'), settingsScreenTitle: document.getElementById('settingsScreenTitle'), customAppNameInput: document.getElementById('customAppNameInput'), maxCrushesSelect: document.getElementById('maxCrushes'), muteToggle: document.getElementById('muteToggle'), showUnrequitedCrushesToggle: document.getElementById('showUnrequitedCrushesToggle'), participantInputsDiv: document.getElementById('participantInputs'), crushSelectionTitle: document.getElementById('crushSelectionTitle'), showScreenTo: document.getElementById('showScreenTo'), crushSelectionContent: document.getElementById('crushSelectionContent'), selectCrushes: document.getElementById('selectCrushes'), noCrushCheckbox: document.getElementById('noCrushCheckbox'), noCrushContainer: document.getElementById('noCrushContainer'), crushListDiv: document.getElementById('crushList'), pachinkoReel: document.getElementById('pachinkoReel'), matchCountMessage: document.getElementById('matchCountMessage'), showResultTo: document.getElementById('showResultTo'), resultContent: document.getElementById('resultContent'), resultDisplayContainer: document.getElementById('resultDisplayContainer'), matchResultDisplay: document.getElementById('matchResultDisplay'), noMatchMessage: document.getElementById('noMatchMessage'), unrequitedCrushDisplay: document.getElementById('unrequitedCrushDisplay'), confirmationModal: document.getElementById('confirmationModal'), modalMessage: document.getElementById('modalMessage'), languageSelector: document.getElementById('languageSelector'), };
+            const sounds = { ping: document.getElementById('pingSound'), match: document.getElementById('matchSound'), spin: document.getElementById('pachinkoSpinSound'), stop: document.getElementById('pachinkoStopSound'), confetti: document.getElementById('confettiSound') };
+            
+            const translations = {
+                ja: { 
+                    defaultAppName: "Mijikani", 
+                    matchingTheme: "マッチングテーマ", 
+                    themePlaceholder: "例: 二人でごはんに行きたい相手", 
+                    maxCrushesLabel: "選択できる最大人数", 
+                    personUnit: "人", 
+                    showUnrequitedCrushesLabel: "片想い人数を表示", 
+                    muteLabel: "サウンドOFF", 
+                    goToParticipantsBtn: "参加者入力へ進む！", 
+                    participantsTitle: "参加者の名前", 
+                    participantLabel: "{{index}}人目",
+                    addParticipantBtn: "参加者を追加", 
+                    startBtn: "マッチング開始！", 
+                    crushSelectionTitle: "気になる人を選ぼう！", 
+                    showScreenTo: "<span class='font-bold text-pink-500'>{{name}}</span>さんの番だよ！", 
+                    iAmParticipantBtn: "はい！<span class='font-bold'>{{name}}</span>です！", 
+                    selectCrushes: "気になる人を選んでね (最大{{count}}人)", 
+                    noCrushCheckbox: "今回はいないかな…", 
+                    finishSelectionBtn: "選び終わったよ！", 
+                    matchCountTitle: "運命の結果発表！", 
+                    excitingResults: "マッチングしたのは…何組かな？", 
+                    goToResultBtn: "みんなの結果を見にいく", 
+                    resultTitle: "あなたの結果は…", 
+                    confirmResultBtn: "ドキドキ…結果を見る！", 
+                    noMutualCrush: "残念！マッチングならず…", 
+                    unrequitedCrushCount: "でも、あなたを想う人が{{count}}人いるよ！", 
+                    nextPersonBtn: "次の人の結果へ", 
+                    resetAppBtn: "もう一回あそぶ", 
+                    modalConfirm: "おわった？", 
+                    modalReset: "ぜんぶリセットする？", 
+                    modalMinParticipants: "参加者は2人以上いれてね！", 
+                    modalMaxParticipants: "参加者は100人までだよ！", 
+                    modalEmptyNames: "みんなの名前をいれてね！", 
+                    modalMaxCrushes: "選べるのは{{count}}人までだよ！", 
+                    modalAllResultsDone: "みんなの結果が出たね！もう一回やる？", 
+                    yes: "うん！", 
+                    no: "ううん", 
+                    enterNamePlaceholder: "なまえ", 
+                    youAndMutual: "{{name}}さんと両想いだよ！💖", 
+                    matchCountResult: "{{count}}組がマッチング成立！",
+                    howToPlayBtn: "あそびかた",
+                    howToPlayTitle: "あそびかた🎉",
+                    step1: "マッチングテーマを決めるよ！（2人でご飯に行きたい人）",
+                    step2: "みんなの名前を入力してね！",
+                    step3: "画面を順番に回して、マッチングしたい人を選ぼう！（他の人には見られないように！）",
+                    step4: "全員の入力が終わったら、マッチングした組数が発表！そのあと、もう一度画面を順番に回して、マッチングした人を確認しよう！（他の人には見られないように！）",
+                    closeBtn: "わかった！"
+                },
+                en: { 
+                    defaultAppName: "Mijikani", 
+                    matchingTheme: "Matching Theme", 
+                    themePlaceholder: "e.g., Friendship Match", 
+                    maxCrushesLabel: "Max Selections", 
+                    personUnit: "people", 
+                    showUnrequitedCrushesLabel: "Show one-sided crushes", 
+                    muteLabel: "Sound OFF", 
+                    goToParticipantsBtn: "Let's Add Participants!", 
+                    participantsTitle: "Participant Names", 
+                    participantLabel: "Person {{index}}",
+                    addParticipantBtn: "Add Participant", 
+                    startBtn: "Start Matching!", 
+                    crushSelectionTitle: "Choose Your Crush!", 
+                    showScreenTo: "It's <span class='font-bold text-pink-500'>{{name}}</span>'s turn!", 
+                    iAmParticipantBtn: "Yes, I'm <span class='font-bold'>{{name}}</span>!", 
+                    selectCrushes: "Pick your crushes (up to {{count}})", 
+                    noCrushCheckbox: "No one this time...", 
+                    finishSelectionBtn: "I'm Done!", 
+                    matchCountTitle: "The Fateful Results!", 
+                    excitingResults: "How many pairs matched?", 
+                    goToResultBtn: "See Everyone's Results", 
+                    resultTitle: "Your Result is...", 
+                    confirmResultBtn: "Reveal My Result!", 
+                    noMutualCrush: "Aww, no match this time...", 
+                    unrequitedCrushCount: "But {{count}} people have a crush on you!", 
+                    nextPersonBtn: "Next Person", 
+                    resetAppBtn: "Play Again", 
+                    modalConfirm: "Are you finished?", 
+                    modalReset: "Reset everything?", 
+                    modalMinParticipants: "You need at least 2 participants.", 
+                    modalMaxParticipants: "Max 100 participants.", 
+                    modalEmptyNames: "Please enter all names.", 
+                    modalMaxCrushes: "You can only pick up to {{count}} people.", 
+                    modalAllResultsDone: "That's everyone! Play again?", 
+                    yes: "Yes!", 
+                    no: "No", 
+                    enterNamePlaceholder: "Name", 
+                    youAndMutual: "It's a match with {{name}}! 💖", 
+                    matchCountResult: "{{count}} pairs matched!",
+                    howToPlayBtn: "How to Play",
+                    howToPlayTitle: "How to Play 🎉",
+                    step1: "Decide on a theme and the rules!",
+                    step2: "Enter everyone's names!",
+                    step3: "Pass the phone around and secretly pick your crush(es)!",
+                    step4: "After everyone has chosen, it's time for the exciting results!",
+                    closeBtn: "Got it!"
+                },
+                zh: { 
+                    defaultAppName: "Mijikanini", 
+                    matchingTheme: "配对主题", 
+                    themePlaceholder: "例如：友情配对", 
+                    maxCrushesLabel: "最多可选人数", 
+                    personUnit: "人", 
+                    showUnrequitedCrushesLabel: "显示单恋我的人数", 
+                    muteLabel: "静音", 
+                    goToParticipantsBtn: "输入参与者！", 
+                    participantsTitle: "参与者姓名", 
+                    participantLabel: "第{{index}}位",
+                    addParticipantBtn: "添加参与者", 
+                    startBtn: "开始配对！", 
+                    crushSelectionTitle: "选择你心仪的人！", 
+                    showScreenTo: "轮到<span class='font-bold text-pink-500'>{{name}}</span>了！", 
+                    iAmParticipantBtn: "是的，我是<span class='font-bold'>{{name}}</span>！", 
+                    selectCrushes: "请选择你心仪的人 (最多{{count}}人)", 
+                    noCrushCheckbox: "这次没有...", 
+                    finishSelectionBtn: "我选好了！", 
+                    matchCountTitle: "命运的结果发表！", 
+                    excitingResults: "有几对配对成功了呢？", 
+                    goToResultBtn: "查看所有人的结果", 
+                    resultTitle: "你的结果是...", 
+                    confirmResultBtn: "紧张...查看结果！", 
+                    noMutualCrush: "很遗憾，没有配对成功...", 
+                    unrequitedCrushCount: "但是，有{{count}}个人心仪你哦！", 
+                    nextPersonBtn: "下一个人的结果", 
+                    resetAppBtn: "再玩一次", 
+                    modalConfirm: "完成了吗？", 
+                    modalReset: "要重置所有内容吗？", 
+                    modalMinParticipants: "至少需要2名参与者。", 
+                    modalMaxParticipants: "最多100名参与者。", 
+                    modalEmptyNames: "请输入所有人的名字。", 
+                    modalMaxCrushes: "最多只能选择{{count}}人。", 
+                    modalAllResultsDone: "所有人的结果都出来了！再玩一次吗？", 
+                    yes: "好！", 
+                    no: "不了", 
+                    enterNamePlaceholder: "名字", 
+                    youAndMutual: "和{{name}}配对成功了！💖", 
+                    matchCountResult: "{{count}}对配对成功！",
+                    howToPlayBtn: "怎么玩",
+                    howToPlayTitle: "怎么玩 🎉",
+                    step1: "决定主题和规则！",
+                    step2: "输入大家的名字！",
+                    step3: "轮流传递手机，秘密选择你心仪的人！（不要给别人看到哦！）",
+                    step4: "所有人都选好后，就是激动人心的结果发表！",
+                    closeBtn: "知道了！"
+                }
+            };
+
+            let appState = {};
+            function resetApp() {
+                appState = { settings: { appName: '', maxCrushes: 1, muted: false, showUnrequitedCrushes: false, language: 'ja', }, participants: [], matches: [], currentParticipantIndex: 0, currentResultIndex: 0, totalMatchesFound: 0, };
+                ui.customAppNameInput.value = ''; ui.maxCrushesSelect.value = 1; ui.muteToggle.checked = false; ui.showUnrequitedCrushesToggle.checked = false; ui.participantInputsDiv.innerHTML = '';
+                const userLang = navigator.language.slice(0, 2);
+                if (userLang in translations) { appState.settings.language = userLang; ui.languageSelector.value = userLang; }
+                updateTextContent(); showScreen(screens.settings);
+            }
+            function showScreen(screenToShow) { Object.values(screens).forEach(screen => screen.classList.remove('active')); screenToShow.classList.add('active'); }
+            function generateUniqueId() { return Math.random().toString(36).substring(2, 11); }
+            function playSound(sound) { if (!appState.settings.muted) { sound.currentTime = 0; sound.play().catch(e => console.error("Sound play failed:", e)); } }
+            function updateTextContent() {
+                const lang = appState.settings.language; const t = translations[lang];
+                document.documentElement.lang = lang;
+                ui.settingsScreenTitle.textContent = appState.settings.appName || t.defaultAppName;
+                document.querySelectorAll('[data-i18n-key]').forEach(el => { const key = el.dataset.i18nKey; if (t[key]) el.textContent = t[key]; });
+                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { const key = el.dataset.i18nPlaceholder; if (t[key]) el.placeholder = t[key]; });
+                ui.maxCrushesSelect.querySelectorAll('option').forEach(opt => { opt.textContent = `${opt.value} ${t.personUnit}`; });
+                populateExplanation();
+            }
+            function populateExplanation() {
+                const t = translations[appState.settings.language];
+                ui.explanationContent.innerHTML = `
+                    <div class="flex items-center"><span class="step-icon">1</span><span>${t.step1}</span></div>
+                    <div class="flex items-center"><span class="step-icon">2</span><span>${t.step2}</span></div>
+                    <div class="flex items-center"><span class="step-icon">3</span><span>${t.step3}</span></div>
+                    <div class="flex items-center"><span class="step-icon">4</span><span>${t.step4}</span></div>
+                `;
+            }
+            function showConfirmationModal(messageKey, args = {}) {
+                return new Promise(resolve => {
+                    const t = translations[appState.settings.language]; let message = t[messageKey];
+                    for (const key in args) { message = message.replace(`{{${key}}}`, args[key]); }
+                    ui.modalMessage.textContent = message; ui.confirmationModal.classList.add('active');
+                    const onConfirm = () => { cleanup(); resolve(true); }; const onCancel = () => { cleanup(); resolve(false); };
+                    const cleanup = () => { ui.confirmationModal.classList.remove('active'); buttons.modalConfirm.removeEventListener('click', onConfirm); buttons.modalCancel.removeEventListener('click', onCancel); };
+                    buttons.modalConfirm.addEventListener('click', onConfirm); buttons.modalCancel.addEventListener('click', onCancel);
+                });
+            }
+            buttons.showExplanation.addEventListener('click', () => ui.explanationModal.classList.add('active'));
+            buttons.closeExplanation.addEventListener('click', () => ui.explanationModal.classList.remove('active'));
+            ui.explanationModal.addEventListener('click', (event) => {
+                if (event.target === ui.explanationModal) {
+                    ui.explanationModal.classList.remove('active');
+                }
+            });
+            ui.languageSelector.addEventListener('change', (e) => { appState.settings.language = e.target.value; updateTextContent(); });
+            ui.customAppNameInput.addEventListener('input', (e) => { appState.settings.appName = e.target.value; updateTextContent(); });
+            ui.maxCrushesSelect.addEventListener('change', (e) => appState.settings.maxCrushes = parseInt(e.target.value));
+            ui.muteToggle.addEventListener('change', (e) => appState.settings.muted = e.target.checked);
+            ui.showUnrequitedCrushesToggle.addEventListener('change', (e) => appState.settings.showUnrequitedCrushes = e.target.checked);
+            buttons.goToParticipants.addEventListener('click', () => {
+                if (appState.participants.length === 0) { appState.participants.push({ id: generateUniqueId(), name: '', crushes: [] }); appState.participants.push({ id: generateUniqueId(), name: '', crushes: [] }); }
+                renderParticipantInputs(); showScreen(screens.participants);
+            });
+            function renderParticipantInputs() {
+                const t = translations[appState.settings.language];
+                ui.participantInputsDiv.innerHTML = '';
+                appState.participants.forEach((p, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center gap-2';
+                    
+                    const label = document.createElement('label');
+                    label.className = 'font-bold text-gray-600 w-20 text-left';
+                    label.textContent = t.participantLabel.replace('{{index}}', index + 1);
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = p.name;
+                    input.dataset.id = p.id;
+                    input.placeholder = t.enterNamePlaceholder;
+                    input.className = 'input-field flex-grow';
+                    input.addEventListener('input', (e) => {
+                        const participant = appState.participants.find(part => part.id === e.target.dataset.id);
+                        if (participant) participant.name = e.target.value;
+                    });
+                    
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'btn-icon text-red-500 hover:bg-red-100 remove-participant-btn';
+                    deleteBtn.dataset.id = p.id;
+                    deleteBtn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+
+                    div.appendChild(label);
+                    div.appendChild(input);
+                    div.appendChild(deleteBtn);
+                    ui.participantInputsDiv.appendChild(div);
+                });
+            }
+            ui.participantInputsDiv.addEventListener('click', (e) => {
+                const deleteBtn = e.target.closest('.remove-participant-btn');
+                if (deleteBtn) {
+                    if (appState.participants.length <= 2) {
+                        showConfirmationModal('modalMinParticipants');
+                        return;
+                    }
+                    const idToDelete = deleteBtn.dataset.id;
+                    appState.participants = appState.participants.filter(p => p.id !== idToDelete);
+                    renderParticipantInputs();
+                }
+            });
+            buttons.addParticipant.addEventListener('click', () => { if (appState.participants.length >= 100) { showConfirmationModal('modalMaxParticipants'); return; } appState.participants.push({ id: generateUniqueId(), name: '', crushes: [] }); renderParticipantInputs(); });
+            buttons.startCrushSelection.addEventListener('click', () => {
+                if (appState.participants.some(p => p.name.trim() === '')) { showConfirmationModal('modalEmptyNames'); return; }
+                if (appState.participants.length < 2) { showConfirmationModal('modalMinParticipants'); return; }
+                appState.currentParticipantIndex = 0; startCrushSelectionForCurrentParticipant(); showScreen(screens.crushSelection);
+            });
+            function startCrushSelectionForCurrentParticipant() {
+                const currentParticipant = appState.participants[appState.currentParticipantIndex];
+                if (!currentParticipant) { calculateMatches(); startPachinkoAnimation(); showScreen(screens.matchCount); return; }
+                playSound(sounds.ping); const t = translations[appState.settings.language];
+                ui.crushSelectionTitle.textContent = appState.settings.appName || t.defaultAppName;
+                ui.showScreenTo.innerHTML = t.showScreenTo.replace('{{name}}', currentParticipant.name);
+                buttons.iAmParticipant.innerHTML = t.iAmParticipantBtn.replace('{{name}}', currentParticipant.name);
+                ui.selectCrushes.innerHTML = t.selectCrushes.replace('{{count}}', appState.settings.maxCrushes);
+                ui.crushSelectionContent.classList.add('hidden'); buttons.iAmParticipant.classList.remove('hidden');
+                renderCrushList(currentParticipant.id); ui.noCrushCheckbox.checked = false; ui.noCrushContainer.classList.remove('checked');
+            }
+            buttons.iAmParticipant.addEventListener('click', () => { buttons.iAmParticipant.classList.add('hidden'); ui.crushSelectionContent.classList.remove('hidden'); });
+            function renderCrushList(currentId) {
+                ui.crushListDiv.innerHTML = '';
+                appState.participants.forEach(p => {
+                    if (p.id === currentId) return;
+                    const label = document.createElement('label'); label.className = 'checkbox-container';
+                    label.innerHTML = `<span class="text-lg font-bold">${p.name}</span><input type="checkbox" data-id="${p.id}" class="crush-checkbox">`;
+                    const checkbox = label.querySelector('.crush-checkbox');
+                    checkbox.addEventListener('change', () => {
+                        const checkedCount = ui.crushListDiv.querySelectorAll('.crush-checkbox:checked').length;
+                        if (checkedCount > appState.settings.maxCrushes) { checkbox.checked = false; showConfirmationModal('modalMaxCrushes', { count: appState.settings.maxCrushes }); }
+                        label.classList.toggle('checked', checkbox.checked);
+                    });
+                    ui.crushListDiv.appendChild(label);
+                });
+                ui.noCrushCheckbox.addEventListener('change', () => ui.noCrushContainer.classList.toggle('checked', ui.noCrushCheckbox.checked));
+            }
+            buttons.finishSelection.addEventListener('click', async () => {
+                const confirmed = await showConfirmationModal('modalConfirm');
+                if (confirmed) {
+                    const currentParticipant = appState.participants[appState.currentParticipantIndex];
+                    currentParticipant.crushes = [];
+                    if (!ui.noCrushCheckbox.checked) { ui.crushListDiv.querySelectorAll('.crush-checkbox:checked').forEach(cb => { currentParticipant.crushes.push(cb.dataset.id); }); }
+                    appState.currentParticipantIndex++; startCrushSelectionForCurrentParticipant();
+                }
+            });
+            function calculateMatches() {
+                appState.matches = []; const participantsMap = new Map(appState.participants.map(p => [p.id, p]));
+                for (const p1 of appState.participants) { for (const crushId of p1.crushes) { const p2 = participantsMap.get(crushId); if (p2 && p2.crushes.includes(p1.id)) { const sortedIds = [p1.id, p2.id].sort(); if (!appState.matches.some(m => m.p1Id === sortedIds[0] && m.p2Id === sortedIds[1])) { appState.matches.push({ p1Id: sortedIds[0], p2Id: sortedIds[1] }); } } } }
+                appState.totalMatchesFound = appState.matches.length;
+            }
+            function startPachinkoAnimation() {
+                playSound(sounds.spin); ui.pachinkoReel.textContent = '?'; ui.matchCountMessage.textContent = ''; let counter = 0;
+                const interval = setInterval(() => { ui.pachinkoReel.textContent = Math.floor(Math.random() * (appState.participants.length)); if (++counter > 30) { clearInterval(interval); stopPachinkoAnimation(); } }, 80);
+            }
+            function stopPachinkoAnimation() {
+                playSound(sounds.stop); ui.pachinkoReel.textContent = appState.totalMatchesFound; const t = translations[appState.settings.language];
+                if (appState.totalMatchesFound > 0) { playSound(sounds.confetti); startConfetti(); ui.matchCountMessage.textContent = t.matchCountResult.replace('{{count}}', appState.totalMatchesFound); } else { ui.matchCountMessage.textContent = t.noMutualCrush; }
+            }
+            buttons.goToResult.addEventListener('click', () => { stopConfetti(); appState.currentResultIndex = 0; startResultAnnouncement(); showScreen(screens.result); });
+            function startResultAnnouncement() {
+                const currentParticipant = appState.participants[appState.currentResultIndex];
+                if (!currentParticipant) { showConfirmationModal('modalAllResultsDone').then(confirmed => { if (confirmed) resetApp(); }); return; }
+                playSound(sounds.ping); const t = translations[appState.settings.language];
+                ui.showResultTo.innerHTML = t.showScreenTo.replace('{{name}}', currentParticipant.name);
+                buttons.iAmParticipantResult.innerHTML = t.iAmParticipantBtn.replace('{{name}}', currentParticipant.name);
+                ui.resultContent.classList.add('hidden'); buttons.iAmParticipantResult.classList.remove('hidden'); ui.resultDisplayContainer.classList.add('hidden'); buttons.confirmResult.classList.remove('hidden'); buttons.nextResult.classList.add('hidden');
+            }
+            buttons.iAmParticipantResult.addEventListener('click', () => { buttons.iAmParticipantResult.classList.add('hidden'); ui.resultContent.classList.remove('hidden'); });
+            buttons.confirmResult.addEventListener('click', () => {
+                const currentParticipant = appState.participants[appState.currentResultIndex]; const t = translations[appState.settings.language]; let foundMatch = false;
+                const mutualMatch = appState.matches.find(m => m.p1Id === currentParticipant.id || m.p2Id === currentParticipant.id);
+                ui.matchResultDisplay.classList.remove('matched');
+                if (mutualMatch) {
+                    const otherId = mutualMatch.p1Id === currentParticipant.id ? mutualMatch.p2Id : mutualMatch.p1Id; const otherPerson = appState.participants.find(p => p.id === otherId);
+                    ui.matchResultDisplay.textContent = t.youAndMutual.replace('{{name}}', otherPerson.name); playSound(sounds.match); foundMatch = true;
+                    setTimeout(() => ui.matchResultDisplay.classList.add('matched'), 10);
+                } else { ui.matchResultDisplay.textContent = ''; }
+                if (appState.settings.showUnrequitedCrushes) { const unrequitedCrushes = appState.participants.filter(p => p.crushes.includes(currentParticipant.id) && !currentParticipant.crushes.includes(p.id)); ui.unrequitedCrushDisplay.textContent = unrequitedCrushes.length > 0 ? t.unrequitedCrushCount.replace('{{count}}', unrequitedCrushes.length) : ''; } else { ui.unrequitedCrushDisplay.textContent = ''; }
+                ui.noMatchMessage.classList.toggle('hidden', foundMatch || ui.unrequitedCrushDisplay.textContent !== '');
+                if (!foundMatch && ui.unrequitedCrushDisplay.textContent === '') { ui.noMatchMessage.textContent = t.noMutualCrush; }
+                ui.resultDisplayContainer.classList.remove('hidden'); buttons.confirmResult.classList.add('hidden'); buttons.nextResult.classList.remove('hidden');
+            });
+            buttons.nextResult.addEventListener('click', async () => { const confirmed = await showConfirmationModal('modalConfirm'); if (confirmed) { appState.currentResultIndex++; startResultAnnouncement(); } });
+            buttons.resetApp.addEventListener('click', () => { showConfirmationModal('modalReset').then(confirmed => { if (confirmed) resetApp(); }); });
+            
+            // 初期化
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            createSparkles();
+            resetApp();
+        });
+    </script>
+</body>
+</html>
+
